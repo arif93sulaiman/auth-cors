@@ -32,7 +32,7 @@ app.post("/register", async (req, res) => {
             first_name: firstName,
             last_name: lastName,
             email: email.toLowerCase(),
-            password: encryptedUserPassword,
+            password: encryptedUserPassword
         })
 
         const token = jwt.sign(
@@ -45,15 +45,44 @@ app.post("/register", async (req, res) => {
         //created user not User model        
         user.token = token;
 
-        return(201).json(user);
+        return res.status(201).json(user);
         
     } catch (error) {
         console.log(error);
     }
 })
 
-app.post("/login", (req, res) => {
-
+app.post("/login", async (req, res) => {
+    
+    try {
+        
+        const {email, password} = req.body
+    
+        if (!(email && password)) {
+            return res.status(400).send("Please insert your email and password")
+        }
+    
+        //validate
+        const user = await User.findOne({email})
+    
+        if (user && (await bcrypt.compare(password, user.password)) ) {
+            const token = jwt.sign(
+                {user_id: user._id, email},
+                process.env.TOKEN_KEY,
+                {
+                    expiresIn: "5h"
+                }
+            )
+    
+            user.token = token
+    
+            return res.status(200).json(user)
+        }
+    
+        return res.status(400).send("Invalid Credentials")
+    } catch (error) {
+        console.log(error)
+    }
 })
 
 module.exports = app;
