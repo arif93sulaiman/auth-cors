@@ -1,3 +1,4 @@
+const cors = require("cors")
 const express = require("express");
 const user = require("./model/user");
 console.log(require("dotenv").config());
@@ -6,10 +7,13 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 
+const auth = require("./middleware/auth")
+
+
 const User = require("./model/user");
 
 const app = express();
-
+app.use(cors());
 app.use(express.json());
 
 // Logic goes here
@@ -83,6 +87,18 @@ app.post("/login", async (req, res) => {
     } catch (error) {
         console.log(error)
     }
+})
+
+app.get("/welcome", cors, (req, res) =>{
+    res.status(200).send("Welcome to My Auth-Cors small app")
+})
+
+app.post("/welcome", auth, (req, res) =>{
+    res.status(200).send("Welcome to My Auth-Cors small app")
+})
+
+app.get("*", (req, res) =>{
+    return res.status(200).send("Welcome to my auth-cors-nodejs")
 })
 
 module.exports = app;
